@@ -1,0 +1,4 @@
+src/components/calculator/CalculatorForm.tsx(18,9): error TS2322: Type 'Resolver<{ spend: unknown; clicks: unknown; sales: unknown; customers: unknown; repeatRate: unknown; }, any, { spend: number; clicks: number; sales: number; customers: number; repeatRate: number; }>' is not assignable to type 'Resolver<{ spend: number; clicks: number; sales: number; customers: number; repeatRate: number; }, any, { spend: number; clicks: number; sales: number; customers: number; repeatRate: number; }>'.
+  Types of parameters 'options' and 'options' are incompatible.
+    Type 'ResolverOptions<{ spend: number; clicks: number; sales: number; customers: number; repeatRate: number; }>' is not assignable to type 'ResolverOptions<{ spend: unknown; clicks: unknown; sales: unknown; customers: unknown; repeatRate: unknown; }>'.
+      Type 'unknown' is not assignable to type 'number'.

@@ -1,0 +1,17 @@
+{
+  "name": "FB ROI Checker",
+  "short_name": "ROI Calc",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "Instant Facebook Ads ROI Calculator",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
