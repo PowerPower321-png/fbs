@@ -1,111 +1,192 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
-import Link from "next/link";
-import { ArrowRight, BarChart2, ShieldCheck, Zap, Sparkles } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Circle, ListTodo, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
-export default function LandingPage() {
+type Task = {
+  id: string;
+  title: string;
+  createdAt: number;
+  completed: boolean;
+};
+
+type Filter = "all" | "active" | "completed";
+
+const STORAGE_KEY = "task-manager.tasks";
+
+export default function TaskManagementApp() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [title, setTitle] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+
+    try {
+      const parsed = JSON.parse(stored) as Task[];
+      setTasks(parsed);
+    } catch {
+      setTasks([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }, [tasks]);
+
+  const remainingTasks = useMemo(
+    () => tasks.filter((task) => !task.completed).length,
+    [tasks]
+  );
+
+  const filteredTasks = useMemo(() => {
+    if (filter === "active") return tasks.filter((task) => !task.completed);
+    if (filter === "completed") return tasks.filter((task) => task.completed);
+    return tasks;
+  }, [tasks, filter]);
+
+  const addTask = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = title.trim();
+    if (!value) return;
+
+    const nextTask: Task = {
+      id: crypto.randomUUID(),
+      title: value,
+      completed: false,
+      createdAt: Date.now(),
+    };
+
+    setTasks((current) => [nextTask, ...current]);
+    setTitle("");
+  };
+
+  const toggleTask = (id: string) => {
+    setTasks((current) =>
+      current.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  const deleteTask = (id: string) => {
+    setTasks((current) => current.filter((task) => task.id !== id));
+  };
+
+  const clearCompleted = () => {
+    setTasks((current) => current.filter((task) => !task.completed));
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center space-y-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+    <main className="mx-auto max-w-3xl px-4 py-12 md:py-16">
+      <motion.section
+        className="glass-card p-6 md:p-8"
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="space-y-6 max-w-3xl"
       >
-        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-500/10 text-primary font-medium text-sm border border-primary/20">
-          <Sparkles className="w-4 h-4" />
-          v1.0 Now Live
-        </span>
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-balance">
-          Stop Wasting <br />
-          <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">
-            $5,000/mo
-          </span>{" "}
-          on Bad Ads
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Instantly calculate your Facebook Ads ROAS, LTV, and CPA. Get
-          AI-powered advice on whether to scale or kill your campaigns.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-          <Link href="/dashboard">
-            <Button size="lg" className="h-14 text-lg px-8 rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-xl shadow-primary/25">
-              Use Calculator Free <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-          <Link href="/pricing">
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-14 text-lg px-8 rounded-full border-2 hover:bg-slate-50"
-            >
-              View Pricing
-            </Button>
-          </Link>
+        <div className="mb-8 flex items-center gap-3">
+          <div className="rounded-xl bg-primary/10 p-3 text-primary">
+            <ListTodo className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold md:text-3xl">Task Manager</h1>
+            <p className="text-sm text-muted-foreground">
+              Keep track of what matters today.
+            </p>
+          </div>
         </div>
-      </motion.div>
 
-      {/* Feature Cards */}
-      <div className="grid md:grid-cols-3 gap-8 w-full max-w-5xl mt-20">
-        {[
-          {
-            icon: Zap,
-            title: "Instant Analysis",
-            desc: "Get immediate feedback on your ad metrics with color-coded alerts.",
-            color: "from-yellow-400 to-orange-500",
-          },
-          {
-            icon: BarChart2,
-            title: "Industry Benchmarks",
-            desc: "See how your CPA and ROAS compare to top 20% of e-com stores.",
-            color: "from-primary to-blue-600",
-          },
-          {
-            icon: ShieldCheck,
-            title: "Privacy First",
-            desc: "Your data stays on your device. We use LocalStorage & IndexedDB.",
-            color: "from-emerald-400 to-teal-500",
-          },
-        ].map((item, i) => (
-          <motion.div
-            key={item.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 + i * 0.1 }}
-            className="group p-6 rounded-2xl bg-white border border-slate-200 text-left shadow-sm hover:shadow-lg transition-all duration-300"
-          >
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4 text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-              <item.icon className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-slate-900">{item.title}</h3>
-            <p className="text-muted-foreground">{item.desc}</p>
-          </motion.div>
-        ))}
-      </div>
+        <form className="mb-6 flex flex-col gap-3 sm:flex-row" onSubmit={addTask}>
+          <Input
+            aria-label="New task"
+            placeholder="Add a new task..."
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+          />
+          <Button type="submit" className="sm:w-auto">
+            Add Task
+          </Button>
+        </form>
 
-      {/* Trust Badge */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="flex items-center gap-6 mt-12 text-sm text-muted-foreground"
-      >
-        <span className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          100% Free to Start
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          No Credit Card Required
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          Instant Results
-        </span>
-      </motion.div>
-    </div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-2">
+            {(["all", "active", "completed"] as const).map((option) => (
+              <Button
+                key={option}
+                size="sm"
+                variant={filter === option ? "primary" : "outline"}
+                onClick={() => setFilter(option)}
+                type="button"
+                className="capitalize"
+              >
+                {option}
+              </Button>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {remainingTasks} task{remainingTasks === 1 ? "" : "s"} remaining
+          </p>
+        </div>
+
+        <ul className="space-y-2">
+          {filteredTasks.length === 0 ? (
+            <li className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              No tasks yet. Add your first one above.
+            </li>
+          ) : (
+            filteredTasks.map((task) => (
+              <li
+                key={task.id}
+                className="flex items-center gap-3 rounded-lg border bg-white p-3"
+              >
+                <button
+                  aria-label={`Toggle task ${task.title}`}
+                  className="text-primary"
+                  onClick={() => toggleTask(task.id)}
+                  type="button"
+                >
+                  {task.completed ? (
+                    <CheckCircle2 className="h-5 w-5" />
+                  ) : (
+                    <Circle className="h-5 w-5" />
+                  )}
+                </button>
+
+                <span
+                  className={`flex-1 text-sm md:text-base ${
+                    task.completed ? "text-muted-foreground line-through" : ""
+                  }`}
+                >
+                  {task.title}
+                </span>
+
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-muted-foreground"
+                  aria-label={`Delete task ${task.title}`}
+                  onClick={() => deleteTask(task.id)}
+                  type="button"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </li>
+            ))
+          )}
+        </ul>
+
+        {tasks.some((task) => task.completed) && (
+          <div className="mt-6 flex justify-end">
+            <Button variant="outline" size="sm" onClick={clearCompleted} type="button">
+              Clear completed
+            </Button>
+          </div>
+        )}
+      </motion.section>
+    </main>
   );
 }
